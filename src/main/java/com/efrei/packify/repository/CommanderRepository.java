@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CommanderRespository extends JpaRepository<Commander, Long> {
+public interface CommanderRepository extends JpaRepository<Commander, Long> {
     @Override
     List<Commander> findAll();
 

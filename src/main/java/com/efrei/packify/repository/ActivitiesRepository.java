@@ -10,8 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface ActivitiesRepository extends JpaRepository<Activities, Long> {
-    @Override
     List<Activities> findAll();
-
-
+    List<Activities> findByNom(String nom);
+    List<Activities> findByVille(String ville);
 }
