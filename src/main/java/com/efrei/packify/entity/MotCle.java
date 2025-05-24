@@ -21,4 +21,19 @@ public class MotCle {
     @Column(name = "nom", nullable = false)
     private String nom;
 
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public Long getIdMotCle() {
+        return idMotCle;
+    }
+
+    public void setIdMotCle(Long idMotCle) {
+        this.idMotCle = idMotCle;
+    }
 }

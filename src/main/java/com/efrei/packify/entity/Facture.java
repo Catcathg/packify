@@ -26,4 +26,36 @@ public class Facture {
 
     @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Commander> commanders;
+
+    public List<Commander> getCommanders() {
+        return commanders;
+    }
+
+    public void setCommanders(List<Commander> commanders) {
+        this.commanders = commanders;
+    }
+
+    public Double getTotal() {
+        return total;
+    }
+
+    public void setTotal(Double total) {
+        this.total = total;
+    }
+
+    public LocalDate getDatePaiement() {
+        return datePaiement;
+    }
+
+    public void setDatePaiement(LocalDate datePaiement) {
+        this.datePaiement = datePaiement;
+    }
+
+    public Long getIdFacture() {
+        return idFacture;
+    }
+
+    public void setIdFacture(Long idFacture) {
+        this.idFacture = idFacture;
+    }
 }

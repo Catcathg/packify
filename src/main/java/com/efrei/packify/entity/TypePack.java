@@ -36,4 +36,60 @@ public class TypePack {
 
     @OneToMany(mappedBy = "typePack", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Commander> commanders;
+
+    public Long getIdTypePack() {
+        return idTypePack;
+    }
+
+    public void setIdTypePack(Long idTypePack) {
+        this.idTypePack = idTypePack;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public Double getPrix() {
+        return prix;
+    }
+
+    public void setPrix(Double prix) {
+        this.prix = prix;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getImg() {
+        return img;
+    }
+
+    public void setImg(String img) {
+        this.img = img;
+    }
+
+    public List<Activities> getActivities() {
+        return activities;
+    }
+
+    public void setActivities(List<Activities> activities) {
+        this.activities = activities;
+    }
+
+    public List<Commander> getCommanders() {
+        return commanders;
+    }
+
+    public void setCommanders(List<Commander> commanders) {
+        this.commanders = commanders;
+    }
 }
