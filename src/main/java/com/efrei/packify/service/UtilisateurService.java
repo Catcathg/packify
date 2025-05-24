@@ -5,7 +5,7 @@ import com.efrei.packify.enums.typeAction;
 import com.efrei.packify.model.LogMongo;
 import com.efrei.packify.repository.LogMongoRepository;
 import com.efrei.packify.repository.UtilisateurRepository;
-import com.efrei.packify.security.HachageMotdePasse;
+import com.efrei.packify.security.HachageMotdePasse;  // ← Import important
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +26,9 @@ public class UtilisateurService {
     }
 
     public Utilisateur createUser(Utilisateur utilisateur) {
+        // ← HACHER LE MOT DE PASSE AVANT SAUVEGARDE
+        utilisateur.setMdp(HachageMotdePasse.hashPassword(utilisateur.getMdp()));
+
         Utilisateur savedUser = utilisateurRepository.save(utilisateur);
 
         // Log
@@ -41,12 +44,33 @@ public class UtilisateurService {
         return savedUser;
     }
 
+    public Utilisateur createAdmin(Utilisateur utilisateur) {
+        // ← HACHER LE MOT DE PASSE AVANT SAUVEGARDE
+        utilisateur.setMdp(HachageMotdePasse.hashPassword(utilisateur.getMdp()));
+
+        Utilisateur savedAdmin = utilisateurRepository.save(utilisateur);
+
+        // Log
+        LogMongo log = new LogMongo(
+                new Date(),
+                typeAction.CREATE_ADMIN,
+                savedAdmin.getIdUtilisateur().toString(),
+                "Admin créé: " + savedAdmin.getPrenom() + " " + savedAdmin.getNom() +
+                        " (" + savedAdmin.getEmail() + ")"
+        );
+        logMongoRepository.save(log);
+
+        return savedAdmin;
+    }
+
     public Utilisateur updateUser(Utilisateur utilisateur) {
         if (!utilisateurRepository.existsById(utilisateur.getIdUtilisateur())) {
             throw new RuntimeException("Utilisateur non trouvé");
         }
 
+        // ← HACHER LE MOT DE PASSE AVANT SAUVEGARDE
         utilisateur.setMdp(HachageMotdePasse.hashPassword(utilisateur.getMdp()));
+
         Utilisateur updatedUser = utilisateurRepository.save(utilisateur);
 
         // Log
@@ -78,26 +102,6 @@ public class UtilisateurService {
                 "Utilisateur supprimé: " + userName
         );
         logMongoRepository.save(log);
-    }
-
-    public Utilisateur registerUser(Utilisateur utilisateur) {
-        if (utilisateurRepository.existsByEmail(utilisateur.getEmail())) {
-            throw new RuntimeException("Email déjà utilisé");
-        }
-
-        utilisateur.setMdp(HachageMotdePasse.hashPassword(utilisateur.getMdp()));
-        Utilisateur savedUser = this.createUser(utilisateur);
-
-        // Log spécifique pour l'inscription
-        LogMongo log = new LogMongo(
-                new Date(),
-                typeAction.REGISTER_USER,
-                savedUser.getIdUtilisateur().toString(),
-                "Inscription utilisateur: " + savedUser.getEmail()
-        );
-        logMongoRepository.save(log);
-
-        return savedUser;
     }
 
 }

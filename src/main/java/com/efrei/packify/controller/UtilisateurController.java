@@ -22,11 +22,27 @@ public class UtilisateurController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // Route pour créer un CLIENT (rôle = 1)
     @PostMapping("/add")
     public ResponseEntity<Utilisateur> addUser(@RequestBody Utilisateur user) {
         try {
+            user.setRole(1);
+
             Utilisateur savedUser = utilisateurService.createUser(user);
             return ResponseEntity.ok(savedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // Route pour créer un ADMIN (rôle = 0)
+    @PostMapping("/addAdmin")
+    public ResponseEntity<Utilisateur> addAdmin(@RequestBody Utilisateur user) {
+        try {
+            user.setRole(0);
+
+            Utilisateur savedAdmin = utilisateurService.createAdmin(user);
+            return ResponseEntity.ok(savedAdmin);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

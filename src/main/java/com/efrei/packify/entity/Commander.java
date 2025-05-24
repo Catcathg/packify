@@ -35,36 +35,12 @@ public class Commander {
     @Column(name = "prix_achat", nullable = false)
     private Double prixAchat;
 
-    public Long getIdCommander() {
-        return idCommander;
+    public Double getPrixAchat() {
+        return prixAchat;
     }
 
-    public void setIdCommander(Long idCommander) {
-        this.idCommander = idCommander;
-    }
-
-    public TypePack getTypePack() {
-        return typePack;
-    }
-
-    public void setTypePack(TypePack typePack) {
-        this.typePack = typePack;
-    }
-
-    public Utilisateur getUtilisateur() {
-        return utilisateur;
-    }
-
-    public void setUtilisateur(Utilisateur utilisateur) {
-        this.utilisateur = utilisateur;
-    }
-
-    public Facture getFacture() {
-        return facture;
-    }
-
-    public void setFacture(Facture facture) {
-        this.facture = facture;
+    public void setPrixAchat(Double prixAchat) {
+        this.prixAchat = prixAchat;
     }
 
     public Integer getQuantite() {
@@ -75,11 +51,35 @@ public class Commander {
         this.quantite = quantite;
     }
 
-    public Double getPrixAchat() {
-        return prixAchat;
+    public Facture getFacture() {
+        return facture;
     }
 
-    public void setPrixAchat(Double prixAchat) {
-        this.prixAchat = prixAchat;
+    public void setFacture(Facture facture) {
+        this.facture = facture;
+    }
+
+    public Utilisateur getUtilisateur() {
+        return utilisateur;
+    }
+
+    public void setUtilisateur(Utilisateur utilisateur) {
+        this.utilisateur = utilisateur;
+    }
+
+    public TypePack getTypePack() {
+        return typePack;
+    }
+
+    public void setTypePack(TypePack typePack) {
+        this.typePack = typePack;
+    }
+
+    public Long getIdCommander() {
+        return idCommander;
+    }
+
+    public void setIdCommander(Long idCommander) {
+        this.idCommander = idCommander;
     }
 }

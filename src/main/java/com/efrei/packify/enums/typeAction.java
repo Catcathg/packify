@@ -7,6 +7,9 @@ public enum typeAction {
     DELETE_USER,
     REGISTER_USER,
 
+    //Admin
+    CREATE_ADMIN,
+
     // Activités
     CREATE_ACTIVITY,
     UPDATE_ACTIVITY,

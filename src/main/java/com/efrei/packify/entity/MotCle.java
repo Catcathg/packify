@@ -18,16 +18,8 @@ public class MotCle {
     @Column(name = "id_motCle")
     private Long idMotCle;
 
-    @Column(name = "nom", nullable = false)
+    @Column(name = "nom", nullable = false, length = 50)
     private String nom;
-
-    public String getNom() {
-        return nom;
-    }
-
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
 
     public Long getIdMotCle() {
         return idMotCle;
@@ -35,5 +27,13 @@ public class MotCle {
 
     public void setIdMotCle(Long idMotCle) {
         this.idMotCle = idMotCle;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
     }
 }
