@@ -22,8 +22,8 @@ public class UtilisateurController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/save")
-    public ResponseEntity<Utilisateur> saveUser(@RequestBody Utilisateur user) {
+    @PostMapping("/add")
+    public ResponseEntity<Utilisateur> addUser(@RequestBody Utilisateur user) {
         try {
             Utilisateur savedUser = utilisateurService.createUser(user);
             return ResponseEntity.ok(savedUser);
@@ -52,13 +52,4 @@ public class UtilisateurController {
         }
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<Utilisateur> registerUser(@RequestBody Utilisateur user) {
-        try {
-            Utilisateur registeredUser = utilisateurService.registerUser(user);
-            return ResponseEntity.ok(registeredUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
 }

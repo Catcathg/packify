@@ -100,11 +100,4 @@ public class UtilisateurService {
         return savedUser;
     }
 
-    public Optional<Utilisateur> findByEmail(String email) {
-        return utilisateurRepository.findByEmail(email);
-    }
-
-    public boolean existsByEmail(String email) {
-        return utilisateurRepository.existsByEmail(email);
-    }
 }
