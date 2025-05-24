@@ -1,0 +1,45 @@
+package com.efrei.packify.controller;
+
+import com.efrei.packify.entity.Facture;
+import com.efrei.packify.service.FactureService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/factures")
+public class FactureController {
+
+    @Autowired
+    private FactureService factureService;
+
+    @GetMapping("/getAll")
+    public ResponseEntity<List<Facture>> getAllFactures() {
+        List<Facture> factures = factureService.getAllFactures();
+        return ResponseEntity.ok(factures);
+    }
+
+    @GetMapping("/findById")
+    public ResponseEntity<Facture> findByIdFactures(@RequestParam Long id) {
+        Facture facture = factureService.findByIdFactures(id);
+        if (facture != null) {
+            return ResponseEntity.ok(facture);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<Facture> saveFacture(@RequestBody Facture facture) {
+        Facture savedFacture = factureService.saveFacture(facture);
+        return ResponseEntity.ok(savedFacture);
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteFacture(@RequestParam Long id) {
+        factureService.deleteByIdFactures(id);
+        return ResponseEntity.ok().build();
+    }
+
+}

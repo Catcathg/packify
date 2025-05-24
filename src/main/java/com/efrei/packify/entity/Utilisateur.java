@@ -18,20 +18,20 @@ public class Utilisateur {
     @Column(name = "id_utilisateur")
     private Long idUtilisateur;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "mdp", nullable = false)
+    @Column(name = "mdp", nullable = false, length = 500)
     private String mdp;
 
-    @Column(name = "nom", nullable = false)
+    @Column(name = "nom", nullable = false, length = 100)
     private String nom;
 
-    @Column(name = "prenom", nullable = false)
+    @Column(name = "prenom", nullable = false, length = 100)
     private String prenom;
 
-    @Column(name = "role", nullable = false, columnDefinition = "VARCHAR(255) DEFAULT '1'")
-    private String role = "1";
+    @Column(name = "role", nullable = false, columnDefinition = "INT DEFAULT 1")
+    private Integer role = 1;
 
     // Relations
     @OneToMany(mappedBy = "utilisateur", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -77,11 +77,11 @@ public class Utilisateur {
         this.prenom = prenom;
     }
 
-    public String getRole() {
+    public Integer getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Integer role) {
         this.role = role;
     }
 

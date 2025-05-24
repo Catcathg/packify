@@ -18,7 +18,7 @@ public class MotCle {
     @Column(name = "id_motCle")
     private Long idMotCle;
 
-    @Column(name = "nom", nullable = false)
+    @Column(name = "nom", nullable = false, length = 50)
     private String nom;
 
 }

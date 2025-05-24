@@ -64,7 +64,7 @@ public class AuthController {
             utilisateur.setNom(registerRequest.getNom());
             utilisateur.setPrenom(registerRequest.getPrenom());
             utilisateur.setMdp(HachageMotdePasse.hashPassword(registerRequest.getPassword()));
-            utilisateur.setRole("1");  // Client par défaut
+            utilisateur.setRole(1);
 
             // Sauvegarder l'utilisateur
             Utilisateur savedUser = utilisateurService.createUser(utilisateur);

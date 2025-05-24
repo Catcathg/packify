@@ -43,15 +43,52 @@ public class UtilisateurService {
     }
 
     public Utilisateur registerUser(Utilisateur utilisateur) {
-        // Vérifier si l'utilisateur existe déjà
         if (utilisateurRepository.existsByEmail(utilisateur.getEmail())) {
             throw new RuntimeException("Email déjà utilisé");
         }
-
-        // Hacher le mot de passe avant de l'enregistrer
         utilisateur.setMdp(HachageMotdePasse.hashPassword(utilisateur.getMdp()));
-
-        // Utiliser la méthode createUser existante
         return this.createUser(utilisateur);
     }
+
+    public Optional<Utilisateur> findById(Long id) {
+        return utilisateurRepository.findById(id);
+    }
+
+    public Utilisateur updateUser(Utilisateur utilisateur) {
+        if (!utilisateurRepository.existsById(utilisateur.getIdUtilisateur())) {
+            throw new RuntimeException("Utilisateur non trouvé");
+        }
+
+        utilisateur.setMdp(HachageMotdePasse.hashPassword(utilisateur.getMdp()));
+
+        Utilisateur updatedUser = utilisateurRepository.save(utilisateur);
+
+        Date currentDate = new Date();
+        LogMongo log = new LogMongo(
+                currentDate, typeAction.UPDATE_USER, updatedUser.getIdUtilisateur().toString(),
+                "Utilisateur mis à jour: " + updatedUser.getIdUtilisateur().toString()
+        );
+
+        logMongoRepository.save(log);
+
+        return updatedUser;
+    }
+
+    public void deleteUser(Long id) {
+        if (!utilisateurRepository.existsById(id)) {
+            throw new RuntimeException("Utilisateur non trouvé");
+        }
+
+        utilisateurRepository.deleteById(id);
+
+        Date currentDate = new Date();
+        LogMongo log = new LogMongo(
+                currentDate, typeAction.DELETE_USER, id.toString(),
+                "Utilisateur supprimé: " + id.toString()
+        );
+
+        logMongoRepository.save(log);
+    }
+
+
 }

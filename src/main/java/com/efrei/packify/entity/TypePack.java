@@ -18,7 +18,7 @@ public class TypePack {
     @Column(name = "id_typePack")
     private Long idTypePack;
 
-    @Column(name = "nom", nullable = false)
+    @Column(name = "nom", nullable = false, length = 100)
     private String nom;
 
     @Column(name = "prix", nullable = false)
@@ -27,12 +27,11 @@ public class TypePack {
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    @Column(name = "img", nullable = false)
+    @Column(name = "img", nullable = false, length = 500)
     private String img;
 
     @OneToMany(mappedBy = "typePack", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Activities> activities;
-
 
     @OneToMany(mappedBy = "typePack", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Commander> commanders;

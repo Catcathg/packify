@@ -17,19 +17,19 @@ public class Activities {
     @Column(name = "id_activities")
     private Long idActivities;
 
-    @Column(name = "nom", nullable = false)
+    @Column(name = "nom", nullable = false, length = 100)
     private String nom;
 
-    @Column(name = "adresse", nullable = false)
+    @Column(name = "adresse", nullable = false, length = 200)
     private String adresse;
 
-    @Column(name = "ville", nullable = false)
+    @Column(name = "ville", nullable = false, length = 100)
     private String ville;
 
     @Column(name = "code_postal", nullable = false)
-    private String codePostal;
+    private Integer codePostal;
 
-    @Column(name = "img", nullable = false)
+    @Column(name = "img", nullable = false, length = 500)
     private String img;
 
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
