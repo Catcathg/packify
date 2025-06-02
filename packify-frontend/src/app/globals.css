@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/* Variables globales Packify */
+:root {
+  /* Couleurs principales */
+  --background: #ffffff;
+  --foreground: #121214;
+
+  /* Couleurs Packify */
+  --packify-black: #121214;
+  --packify-pink: #FF6EC5;
+  --packify-pink-light: #FB7D93;
+  --packify-navy: #162233;
+  --packify-gray: #374151;
+  --packify-gray-light: #9CA3AF;
+
+  /* Typographies */
+  --font-inter: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+  --font-roboto: 'Roboto', 'Arial', sans-serif;
+  --font-garamond: 'EB Garamond', 'Times New Roman', serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, 'Consolas', 'DejaVu Sans Mono', monospace;
+
+  /* Couleurs personnalisées Packify */
+  --color-packify-black: var(--packify-black);
+  --color-packify-pink: var(--packify-pink);
+  --color-packify-pink-light: var(--packify-pink-light);
+  --color-packify-navy: var(--packify-navy);
+  --color-packify-gray: var(--packify-gray);
+  --color-packify-gray-light: var(--packify-gray-light);
+}
+
+/* Désactiver le mode sombre automatique */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Garder les couleurs claires même en mode sombre */
+    --background: #ffffff;
+    --foreground: #121214;
+  }
+}
+
+/* Styles globaux du body */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Classes utilitaires pour les fonts */
+.font-inter {
+  font-family: var(--font-inter);
+}
+
+.font-roboto {
+  font-family: var(--font-roboto);
+}
+
+.font-garamond {
+  font-family: var(--font-garamond);
+}
+
+/* Classes utilitaires pour les couleurs Packify */
+.bg-packify-black {
+  background-color: var(--packify-black);
+}
+
+.bg-packify-pink {
+  background-color: var(--packify-pink);
+}
+
+.bg-packify-pink-light {
+  background-color: var(--packify-pink-light);
+}
+
+.bg-packify-navy {
+  background-color: var(--packify-navy);
+}
+
+.text-packify-black {
+  color: var(--packify-black);
+}
+
+.text-packify-pink {
+  color: var(--packify-pink);
+}
+
+.text-packify-pink-light {
+  color: var(--packify-pink-light);
+}
+
+.text-packify-navy {
+  color: var(--packify-navy);
+}
+
+.text-packify-gray {
+  color: var(--packify-gray);
+}
+
+.text-packify-gray-light {
+  color: var(--packify-gray-light);
+}
+
+/* Styles pour les boutons Packify */
+.btn-packify {
+  background-color: var(--packify-pink);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-packify:hover {
+  background-color: var(--packify-pink-light);
+  transform: translateY(-2px);
+}
+
+/* Styles pour les liens */
+a {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--packify-pink-light);
+}
+
+/* Sélection de texte personnalisée */
+::selection {
+  background-color: var(--packify-pink);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--packify-pink);
+  color: white;
+}
+
+/* Styles pour les scrollbars (Webkit) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--packify-pink);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--packify-pink-light);
+}
