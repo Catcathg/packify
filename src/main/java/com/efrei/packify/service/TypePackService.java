@@ -3,8 +3,8 @@ package com.efrei.packify.service;
 import com.efrei.packify.entity.TypePack;
 import com.efrei.packify.enums.typeAction;
 import com.efrei.packify.model.LogMongo;
-import com.efrei.packify.repository.LogMongoRepository;
-import com.efrei.packify.repository.TypePackRepository;
+import com.efrei.packify.repository.mongo.LogMongoRepository;
+import com.efrei.packify.repository.mysql.TypePackRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,6 @@ public class TypePackService {
 
         TypePack savedTypePack = typePackRepository.save(typePack);
 
-        // Log
         String logMessage = (isUpdate ? "Pack mis à jour: " : "Pack créé: ") +
                 savedTypePack.getNom() +
                 " - Prix: " + savedTypePack.getPrix() + "€";
@@ -55,7 +54,6 @@ public class TypePackService {
         Optional<TypePack> typePackOpt = typePackRepository.findById(id);
         typePackRepository.deleteById(id);
 
-        // Log
         String logMessage = "Pack supprimé: ";
         if (typePackOpt.isPresent()) {
             TypePack typePack = typePackOpt.get();

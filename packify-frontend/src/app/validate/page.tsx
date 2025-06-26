@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 
 export default function Validate() {
-    const [openSection, setOpenSection] = useState(null);
+    const [openSection, setOpenSection] = useState<string | null>(null);
     const [loginData, setLoginData] = useState({
         email: '',
         password: ''
@@ -38,7 +38,7 @@ export default function Validate() {
         }
     ];
 
-    const handleLoginChange = (e) => {
+    const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setLoginData(prev => ({
             ...prev,
@@ -46,7 +46,7 @@ export default function Validate() {
         }));
     };
 
-    const handleRegisterChange = (e) => {
+    const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setRegisterData(prev => ({
             ...prev,
@@ -62,7 +62,7 @@ export default function Validate() {
         console.log('Register:', registerData);
     };
 
-    const toggleSection = (section) => {
+    const toggleSection = (section: string | null) => {
         setOpenSection(openSection === section ? null : section);
     };
 

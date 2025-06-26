@@ -3,8 +3,8 @@ package com.efrei.packify.service;
 import com.efrei.packify.entity.MotCle;
 import com.efrei.packify.enums.typeAction;
 import com.efrei.packify.model.LogMongo;
-import com.efrei.packify.repository.LogMongoRepository;
-import com.efrei.packify.repository.MotCleRepository;
+import com.efrei.packify.repository.mongo.LogMongoRepository;
+import com.efrei.packify.repository.mysql.MotCleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,6 @@ public class MotCleService {
 
         MotCle savedMotCle = motCleRepository.save(motCle);
 
-        // Log
         String logMessage = (isUpdate ? "Mot-clé mis à jour: " : "Mot-clé créé: ") +
                 savedMotCle.getNom();
 
@@ -54,7 +53,6 @@ public class MotCleService {
         Optional<MotCle> motCleOpt = motCleRepository.findById(id);
         motCleRepository.deleteById(id);
 
-        // Log
         String motCleName = motCleOpt.map(MotCle::getNom).orElse("ID " + id);
         LogMongo log = new LogMongo(
                 new Date(),

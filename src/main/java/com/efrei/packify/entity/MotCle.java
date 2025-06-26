@@ -15,7 +15,7 @@ public class MotCle {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_motCle")
+    @Column(name = "id_mot_cle")
     private Long idMotCle;
 
     @Column(name = "nom", nullable = false, length = 50)

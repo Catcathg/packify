@@ -3,8 +3,8 @@ package com.efrei.packify.service;
 import com.efrei.packify.entity.Facture;
 import com.efrei.packify.enums.typeAction;
 import com.efrei.packify.model.LogMongo;
-import com.efrei.packify.repository.FactureRepository;
-import com.efrei.packify.repository.LogMongoRepository;
+import com.efrei.packify.repository.mysql.FactureRepository;
+import com.efrei.packify.repository.mongo.LogMongoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,6 @@ public class FactureService {
 
         Facture savedFacture = factureRepository.save(facture);
 
-        // Log
         String logMessage = (isUpdate ? "Facture mise à jour: " : "Facture créée: ") +
                 "ID " + savedFacture.getIdFacture() +
                 " - Montant: " + savedFacture.getTotal() + "€" +
@@ -56,7 +55,6 @@ public class FactureService {
         Optional<Facture> factureOpt = factureRepository.findById(id);
         factureRepository.deleteById(id);
 
-        // Log
         String logMessage = "Facture supprimée: ID " + id;
         if (factureOpt.isPresent()) {
             Facture facture = factureOpt.get();

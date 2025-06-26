@@ -1,5 +1,7 @@
 package com.efrei.packify.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +17,7 @@ public class TypePack {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_typePack")
+    @Column(name = "id_type_pack")
     private Long idTypePack;
 
     @Column(name = "nom", nullable = false, length = 100)
@@ -31,6 +33,7 @@ public class TypePack {
     private String img;
 
     @OneToMany(mappedBy = "typePack", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Activities> activities;
 
     @OneToMany(mappedBy = "typePack", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

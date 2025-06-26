@@ -35,11 +35,11 @@ public class Activities {
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_typePack", nullable = false)
     private TypePack typePack;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_motCle", nullable = false)
     private MotCle motCle;
 

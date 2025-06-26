@@ -3,8 +3,8 @@ package com.efrei.packify.service;
 import com.efrei.packify.entity.Utilisateur;
 import com.efrei.packify.enums.typeAction;
 import com.efrei.packify.model.LogMongo;
-import com.efrei.packify.repository.LogMongoRepository;
-import com.efrei.packify.repository.UtilisateurRepository;
+import com.efrei.packify.repository.mongo.LogMongoRepository;
+import com.efrei.packify.repository.mysql.UtilisateurRepository;
 import com.efrei.packify.security.HachageMotdePasse;  // ← Import important
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,12 +26,11 @@ public class UtilisateurService {
     }
 
     public Utilisateur createUser(Utilisateur utilisateur) {
-        // ← HACHER LE MOT DE PASSE AVANT SAUVEGARDE
+
         utilisateur.setMdp(HachageMotdePasse.hashPassword(utilisateur.getMdp()));
 
         Utilisateur savedUser = utilisateurRepository.save(utilisateur);
 
-        // Log
         LogMongo log = new LogMongo(
                 new Date(),
                 typeAction.CREATE_USER,
@@ -50,7 +49,6 @@ public class UtilisateurService {
 
         Utilisateur savedAdmin = utilisateurRepository.save(utilisateur);
 
-        // Log
         LogMongo log = new LogMongo(
                 new Date(),
                 typeAction.CREATE_ADMIN,
@@ -68,12 +66,10 @@ public class UtilisateurService {
             throw new RuntimeException("Utilisateur non trouvé");
         }
 
-        // ← HACHER LE MOT DE PASSE AVANT SAUVEGARDE
         utilisateur.setMdp(HachageMotdePasse.hashPassword(utilisateur.getMdp()));
 
         Utilisateur updatedUser = utilisateurRepository.save(utilisateur);
 
-        // Log
         LogMongo log = new LogMongo(
                 new Date(),
                 typeAction.UPDATE_USER,
@@ -104,4 +100,7 @@ public class UtilisateurService {
         logMongoRepository.save(log);
     }
 
+    public Optional<Utilisateur> findByEmail(String email) {
+        return utilisateurRepository.findByEmail(email);
+    }
 }

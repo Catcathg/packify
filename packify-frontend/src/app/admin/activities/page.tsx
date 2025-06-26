@@ -1,11 +1,22 @@
 "use client";
 import React, { useState } from 'react';
 
-export default function Activities() {
-    const [currentPage, setCurrentPage] = useState(1);
-    const activitiesPerPage = 5;
+interface Activity {
+    id: number;
+    name: string;
+    address: string;
+    city: string;
+    postalCode: string;
+    image: string;
+    description: string;
+    category: 'RESTAURANT' | 'AVENTURE' | 'DETENTE' | 'CULTURE';
+}
 
-    const activities = [
+export default function Activities() {
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const activitiesPerPage: number = 5;
+
+    const activities: Activity[] = [
         {
             id: 1,
             name: "SPA PARIS",
@@ -14,7 +25,7 @@ export default function Activities() {
             postalCode: "75011",
             image: "https://cdntour-image.com",
             description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
-            category: "DÉTENTE"
+            category: "DETENTE"
         },
         {
             id: 2,
@@ -108,29 +119,26 @@ export default function Activities() {
         }
     ];
 
-    const getCategoryColor = (category) => {
-        const colors = {
+    const getCategoryColor = (category: Activity['category']): string => {
+        const colors: Record<Activity['category'], string> = {
             'RESTAURANT': 'bg-packify-pink text-white',
             'AVENTURE': 'bg-purple-500 text-white',
-            'DÉTENTE': 'bg-blue-500 text-white',
+            'DETENTE': 'bg-blue-500 text-white',
             'CULTURE': 'bg-green-500 text-white'
         };
         return colors[category] || 'bg-gray-500 text-white';
     };
 
-    const handleEdit = (id) => {
+    const handleEdit = (id: number): void => {
         console.log('Edit activity:', id);
-        // Logique de modification
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = (id: number): void => {
         console.log('Delete activity:', id);
-        // Logique de suppression
     };
 
-    const handleCreate = () => {
+    const handleCreate = (): void => {
         console.log('Create new activity');
-        // Logique de création
     };
 
     // Pagination
@@ -241,9 +249,9 @@ export default function Activities() {
                     </div>
                     <div className="bg-gray-800 rounded-2xl p-6 text-center">
                         <div className="text-2xl font-bold text-packify-pink mb-2">
-                            {activities.filter(a => a.category === 'DÉTENTE').length}
+                            {activities.filter(a => a.category === 'DETENTE').length}
                         </div>
-                        <div className="text-gray-400">Détente</div>
+                        <div className="text-gray-400">Detente</div>
                     </div>
                 </div>
             </div>

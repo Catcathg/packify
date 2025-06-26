@@ -1,28 +1,136 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+
+interface FormData {
+    prenom: string;
+    nom: string;
+    email: string;
+    mdp: string;
+    confirmPassword: string;
+}
 
 export default function Register() {
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
+    const router = useRouter();
+    const [formData, setFormData] = useState<FormData>({
+        prenom: '',
+        nom: '',
         email: '',
-        password: '',
+        mdp: '',
         confirmPassword: ''
     });
-    const [showPassword, setShowPassword] = useState(false);
-    const [activeTab, setActiveTab] = useState('register');
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [activeTab, setActiveTab] = useState<'register' | 'login'>('register');
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>('');
+    const [success, setSuccess] = useState<string>('');
 
-    const handleInputChange = (e) => {
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
+        setError('');
+        setSuccess('');
     };
 
-    const handleSubmit = (e) => {
+    const validateForm = (): boolean => {
+        if (!formData.prenom || !formData.nom || !formData.email || !formData.mdp || !formData.confirmPassword) {
+            setError('Veuillez remplir tous les champs');
+            return false;
+        }
+
+        if (formData.mdp !== formData.confirmPassword) {
+            setError('Les mots de passe ne correspondent pas');
+            return false;
+        }
+
+        if (formData.mdp.length < 8) {
+            setError('Le mot de passe doit contenir au moins 8 caractères');
+            return false;
+        }
+
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/;
+        if (!passwordRegex.test(formData.mdp)) {
+            setError('Le mot de passe doit contenir au moins une lettre, un chiffre et un symbole');
+            return false;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('Veuillez saisir une adresse email valide');
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            console.log('📝 Tentative d\'inscription...', {
+                email: formData.email,
+                prenom: formData.prenom,
+                nom: formData.nom
+            });
+
+            const userData = {
+                email: formData.email,
+                mdp: formData.mdp,
+                prenom: formData.prenom,
+                nom: formData.nom
+            };
+
+            const response = await fetch('http://localhost:8080/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            });
+
+            console.log('📡 Statut de la réponse:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Erreur du serveur:', errorText);
+                throw new Error(errorText || `Erreur HTTP: ${response.status}`);
+            }
+
+            const message = await response.text();
+            console.log('✅ Réponse du serveur:', message);
+
+            setSuccess('Inscription réussie ! Redirection vers la connexion...');
+
+            setTimeout(() => {
+                router.push('/auth/login');
+            }, 2000);
+
+        } catch (error) {
+            console.error('❌ Erreur dans register:', error);
+
+            if (error instanceof Error) {
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    setError('Impossible de se connecter au serveur. Vérifiez que le backend est démarré.');
+                } else {
+                    setError(error.message);
+                }
+            } else {
+                setError('Une erreur inattendue s\'est produite');
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -57,8 +165,20 @@ export default function Register() {
                     S'inscrire
                 </h1>
 
+                {/* Messages d'erreur/succès */}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                        ❌ {error}
+                    </div>
+                )}
+                {success && (
+                    <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                        ✅ {success}
+                    </div>
+                )}
+
                 {/* Registration Form */}
-                <div className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {/* First Name and Last Name */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -67,11 +187,13 @@ export default function Register() {
                             </label>
                             <input
                                 type="text"
-                                name="firstName"
-                                value={formData.firstName}
+                                name="prenom"  // Changé pour correspondre à l'entité
+                                value={formData.prenom}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-packify-pink focus:border-transparent transition-all"
                                 required
+                                disabled={loading}
+                                placeholder="Votre prénom"
                             />
                         </div>
                         <div>
@@ -80,11 +202,13 @@ export default function Register() {
                             </label>
                             <input
                                 type="text"
-                                name="lastName"
-                                value={formData.lastName}
+                                name="nom"  // Changé pour correspondre à l'entité
+                                value={formData.nom}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-packify-pink focus:border-transparent transition-all"
                                 required
+                                disabled={loading}
+                                placeholder="Votre nom"
                             />
                         </div>
                     </div>
@@ -101,6 +225,8 @@ export default function Register() {
                             onChange={handleInputChange}
                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-packify-pink focus:border-transparent transition-all"
                             required
+                            disabled={loading}
+                            placeholder="votre@email.com"
                         />
                     </div>
 
@@ -112,16 +238,18 @@ export default function Register() {
                             </label>
                             <input
                                 type={showPassword ? 'text' : 'password'}
-                                name="password"
-                                value={formData.password}
+                                name="mdp"
+                                value={formData.mdp}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-packify-pink focus:border-transparent transition-all"
                                 required
+                                disabled={loading}
+                                placeholder="••••••••"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Confirmer votre mot de passe
+                                Confirmer
                             </label>
                             <input
                                 type={showPassword ? 'text' : 'password'}
@@ -130,6 +258,8 @@ export default function Register() {
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-packify-pink focus:border-transparent transition-all"
                                 required
+                                disabled={loading}
+                                placeholder="••••••••"
                             />
                         </div>
                     </div>
@@ -147,6 +277,7 @@ export default function Register() {
                             checked={showPassword}
                             onChange={(e) => setShowPassword(e.target.checked)}
                             className="w-4 h-4 text-packify-pink bg-gray-100 border-gray-300 rounded focus:ring-packify-pink focus:ring-2"
+                            disabled={loading}
                         />
                         <label htmlFor="showPassword" className="ml-2 text-sm text-gray-700">
                             Afficher le mot de passe
@@ -155,12 +286,24 @@ export default function Register() {
 
                     {/* Submit Button */}
                     <button
-                        onClick={handleSubmit}
-                        className="w-full bg-packify-pink hover:bg-packify-pink-light text-white font-bold py-4 px-6 rounded-full transition-all duration-300 transform hover:scale-105 text-lg"
+                        type="submit"
+                        disabled={loading}
+                        className={`w-full font-bold py-4 px-6 rounded-full transition-all duration-300 text-lg ${
+                            loading
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-packify-pink hover:bg-packify-pink-light text-white transform hover:scale-105'
+                        }`}
                     >
-                        S'INSCRIRE
+                        {loading ? (
+                            <div className="flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                INSCRIPTION...
+                            </div>
+                        ) : (
+                            'S\'INSCRIRE'
+                        )}
                     </button>
-                </div>
+                </form>
             </div>
         </div>
     );

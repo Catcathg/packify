@@ -1,8 +1,20 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
+
+type Category = 'Aventure' | 'Restaurant' | 'Détente';
+
+interface ActivityData {
+    name: string;
+    category: Category;
+    address: string;
+    city: string;
+    postalCode: string;
+    image: string;
+    description: string;
+}
 
 export default function ActivitiesModify() {
-    const [activityData, setActivityData] = useState({
+    const [activityData, setActivityData] = useState<ActivityData>({
         name: 'KARTING',
         category: 'Aventure',
         address: '5 rue de l\'Horloge',
@@ -12,13 +24,13 @@ export default function ActivitiesModify() {
         description: 'Découverte'
     });
 
-    const categories = [
+    const categories: Category[] = [
         'Aventure',
         'Restaurant',
         'Détente',
     ];
 
-    const handleInputChange = (e) => {
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>): void => {
         const { name, value } = e.target;
         setActivityData(prev => ({
             ...prev,
@@ -26,9 +38,8 @@ export default function ActivitiesModify() {
         }));
     };
 
-    const handleSave = () => {
+    const handleSave = (): void => {
         console.log('Activity updated:', activityData);
-        // Ici vous ajouteriez la logique de sauvegarde
     };
 
     return (

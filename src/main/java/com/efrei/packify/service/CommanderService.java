@@ -3,8 +3,8 @@ package com.efrei.packify.service;
 import com.efrei.packify.entity.Commander;
 import com.efrei.packify.enums.typeAction;
 import com.efrei.packify.model.LogMongo;
-import com.efrei.packify.repository.CommanderRepository;
-import com.efrei.packify.repository.LogMongoRepository;
+import com.efrei.packify.repository.mysql.CommanderRepository;
+import com.efrei.packify.repository.mongo.LogMongoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,6 @@ public class CommanderService {
 
         Commander savedCommander = commanderRepository.save(commander);
 
-        // Log
         String logMessage = (isUpdate ? "Commande mise à jour: " : "Commande créée: ") +
                 "ID " + savedCommander.getIdCommander() +
                 " - Quantité: " + savedCommander.getQuantite() +
@@ -56,7 +55,6 @@ public class CommanderService {
         Optional<Commander> commanderOpt = commanderRepository.findById(id);
         commanderRepository.deleteById(id);
 
-        // Log
         String logMessage = "Commande supprimée: ID " + id;
         if (commanderOpt.isPresent()) {
             Commander commander = commanderOpt.get();
