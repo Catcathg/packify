@@ -47,53 +47,45 @@ export default function Header() {
             if (!token) {
                 setIsAuthenticated(false);
                 setUser(null);
+                setAuthLoading(false);
                 return;
             }
 
-            const response = await fetch('http://localhost:8080/api/auth/profile', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
+            // Vérifier si le token est valide
+            if (!isUserAuthenticated()) {
+                console.log('Token expiré, nettoyage...');
+                localStorage.removeItem('token');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                setIsAuthenticated(false);
+                setUser(null);
+                setAuthLoading(false);
+                return;
+            }
 
-            if (response.ok) {
-                const userData = await response.json();
-                setUser(userData);
-                setIsAuthenticated(true);
-            } else {
-                const savedUser = localStorage.getItem('user');
-                if (savedUser) {
+            // Récupérer les données utilisateur depuis localStorage
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                try {
                     const userData = JSON.parse(savedUser);
+                    console.log('Données utilisateur depuis localStorage:', userData);
                     setUser(userData);
                     setIsAuthenticated(true);
-                } else {
-                    // Token invalide ou expiré
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('authToken');
+                } catch (e) {
+                    console.error('Erreur lors du parsing des données utilisateur:', e);
                     localStorage.removeItem('user');
                     setIsAuthenticated(false);
                     setUser(null);
                 }
-            }
-        } catch (error) {
-            console.error('Erreur lors de la récupération du profil:', error);
-
-            try {
-                const savedUser = localStorage.getItem('user');
-                if (savedUser) {
-                    const userData = JSON.parse(savedUser);
-                    setUser(userData);
-                    setIsAuthenticated(true);
-                } else {
-                    setIsAuthenticated(false);
-                    setUser(null);
-                }
-            } catch (e) {
+            } else {
+                console.log('Aucune donnée utilisateur dans localStorage');
                 setIsAuthenticated(false);
                 setUser(null);
             }
+        } catch (error) {
+            console.error('Erreur lors de la récupération du profil:', error);
+            setIsAuthenticated(false);
+            setUser(null);
         } finally {
             setAuthLoading(false);
         }
@@ -101,7 +93,6 @@ export default function Header() {
 
     const fetchCartCount = async () => {
         try {
-            // Utiliser localStorage au lieu d'API puisque vous n'avez pas de contrôleur Cart
             if (typeof window !== 'undefined') {
                 const savedCart = localStorage.getItem('cart');
                 if (savedCart) {
@@ -165,7 +156,7 @@ export default function Header() {
     }, [pathname]);
 
     useEffect(() => {
-        const interval = setInterval(fetchCartCount, 30000); // Toutes les 30 secondes
+        const interval = setInterval(fetchCartCount, 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -198,29 +189,23 @@ export default function Header() {
 
     const handleLogout = async () => {
         try {
-            const token = getToken();
-            if (token) {
-                // Appeler l'API de déconnexion si elle existe
-                await fetch('http://localhost:8080/api/auth/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-            }
+            // Pas d'appel API pour le logout, juste nettoyage localStorage
+            console.log('Déconnexion en cours...');
         } catch (error) {
             console.error('Erreur lors de la déconnexion:', error);
         } finally {
+            // Nettoyer le localStorage dans tous les cas
             localStorage.removeItem('token');
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
 
+            // Réinitialiser les états
             setIsAuthenticated(false);
             setUser(null);
             setIsMenuOpen(false);
             setCartCount(0);
 
+            // Rediriger vers l'accueil
             router.push('/');
         }
     };
@@ -270,13 +255,11 @@ export default function Header() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                                           d="M16 11V7a4 4 0 00-8 0v4M5 9h14l-1 9H6L5 9z"/>
                                 </svg>
-                                {/* Compteur d'articles */}
                                 {!cartLoading && cartCount > 0 && (
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                                         {cartCount}
                                     </span>
                                 )}
-                                {/* Indicateur de chargement du panier */}
                                 {cartLoading && (
                                     <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                                         <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
@@ -349,7 +332,6 @@ export default function Header() {
                                                         <span>Mon profil</span>
                                                     </button>
 
-                                                    {/* Afficher le nombre d'articles dans le panier */}
                                                     <button
                                                         onClick={() => {
                                                             setIsMenuOpen(false);
@@ -397,7 +379,6 @@ export default function Header() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    {/* Utilisateur non connecté */}
                                                     <div className="px-4 py-3 border-b border-gray-100">
                                                         <p className="text-sm font-medium text-gray-900">
                                                             Bienvenue sur Packify
@@ -407,7 +388,6 @@ export default function Header() {
                                                         </p>
                                                     </div>
 
-                                                    {/* Afficher le panier même pour les utilisateurs non connectés */}
                                                     <button
                                                         onClick={() => {
                                                             setIsMenuOpen(false);

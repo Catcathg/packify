@@ -268,7 +268,7 @@ export default function Cart() {
                     {/* Affichage conditionnel du statut utilisateur */}
                     {isAuthenticated && user && (
                         <div className="mt-4 text-sm text-gray-400">
-                            Connecté en tant que <span className="text-packify-pink">{user.prenom} {user.nom}</span>
+                            Connecté en tant que <span className="text-packify-pink">{user.email} {user.nom}</span>
                         </div>
                     )}
                 </div>

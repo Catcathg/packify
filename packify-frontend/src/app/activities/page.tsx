@@ -37,7 +37,6 @@ export default function Activities() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Fonction utilitaire pour les appels API
     const apiCall = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -74,7 +73,6 @@ export default function Activities() {
         }
     };
 
-    // Récupérer les activités et catégories depuis l'API
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -90,12 +88,10 @@ export default function Activities() {
                     setError('Erreur de chargement des catégories');
                 }
 
-                // Récupérer les activités
                 let activitiesData: Activity[] = [];
                 try {
                     const rawActivitiesData = await apiCall('/api/v1/activities/getAll');
 
-                    // Vérifier si on a bien reçu un tableau
                     if (!Array.isArray(rawActivitiesData)) {
                         throw new Error('Les données reçues ne sont pas un tableau');
                     }
@@ -104,7 +100,6 @@ export default function Activities() {
                         setError('Aucune activité trouvée dans la base de données');
                     }
 
-                    // Mapper les données backend vers le format frontend
                     activitiesData = rawActivitiesData.map((activity: any, index: number) => {
                         const mapped: Activity = {
                             id: activity.idActivities || index + 1,
@@ -126,7 +121,6 @@ export default function Activities() {
                     setError('Erreur de chargement des activités: ' + (err as Error).message);
                 }
 
-                // Mettre à jour les states
                 setCategories(categoriesData);
                 setActivities(activitiesData);
 
@@ -144,7 +138,6 @@ export default function Activities() {
         fetchData();
     }, []);
 
-    // Récupérer le panier depuis localStorage
     useEffect(() => {
         const loadCartFromStorage = () => {
             try {
@@ -178,7 +171,6 @@ export default function Activities() {
         }
     }, []);
 
-    // Fonction pour sauvegarder le panier dans localStorage
     const saveCartToStorage = (items: CartItem[]) => {
         try {
             if (typeof window !== 'undefined') {
@@ -189,63 +181,50 @@ export default function Activities() {
         }
     };
 
-    // Fonction pour supprimer une activité du panier
     const removeFromCart = (activityId: number) => {
         const updatedCartItems = cartItems.filter(item => item.id !== activityId);
         setCartItems(updatedCartItems);
         saveCartToStorage(updatedCartItems);
     };
 
-    // Calculer combien d'activités il reste à sélectionner
     const cartCount = cartItems.length;
     const remainingSlots = 3 - cartCount;
     const maxSelectable = remainingSlots;
 
-    // Vérifier si une activité est dans le panier
     const isInCart = (activityId: number): boolean => {
         return cartItems.some(item => item.id === activityId);
     };
 
-    // Trouver le mot-clé correspondant à une catégorie
     const getCategoryById = (categoryId: string): MotCle | undefined => {
         return categories.find(cat => cat.idMotCle.toString() === categoryId || cat.nom === categoryId);
     };
 
     const handleActivitySelect = (activityId: number) => {
         if (selectedActivities.includes(activityId)) {
-            // Désélectionner l'activité
             setSelectedActivities(selectedActivities.filter(id => id !== activityId));
         } else if (selectedActivities.length < maxSelectable) {
-            // Sélectionner l'activité
             setSelectedActivities([...selectedActivities, activityId]);
         }
     };
 
-    // Fonction pour valider la sélection et ajouter au panier
     const handleValidateSelection = async () => {
         try {
-            // Récupérer les activités sélectionnées avec leurs détails complets
             const selectedActivityDetails = activities.filter(activity =>
                 selectedActivities.includes(activity.id)
             );
 
-            // Ajouter chaque activité au panier local
             const newCartItems = selectedActivityDetails.filter(activity => !isInCart(activity.id));
             const updatedCartItems = [...cartItems, ...newCartItems];
 
-            // Mettre à jour le state et localStorage
             setCartItems(updatedCartItems);
             saveCartToStorage(updatedCartItems);
 
-            // Réinitialiser la sélection locale
             setSelectedActivities([]);
 
-            // Rediriger vers le panier seulement si le pack devient complet
             const willBeComplete = cartCount + selectedActivities.length >= 3;
             if (willBeComplete) {
                 router.push('/cart');
             } else {
-                // Pack pas encore complet, afficher un message de confirmation
                 alert(`✅ ${selectedActivities.length} activité${selectedActivities.length > 1 ? 's' : ''} ajoutée${selectedActivities.length > 1 ? 's' : ''} au panier ! Il vous en manque encore ${3 - (cartCount + selectedActivities.length)} pour compléter votre pack.`);
             }
         } catch (err) {
@@ -263,7 +242,6 @@ export default function Activities() {
     });
 
     const getCategoryColor = (category: string) => {
-        // Couleurs par défaut basées sur le nom du mot-clé
         const defaultColors: { [key: string]: string } = {
             'RESTAURANT': 'bg-packify-pink',
             'AVENTURE': 'bg-purple-500',
@@ -276,7 +254,6 @@ export default function Activities() {
         return defaultColors[categoryName.toUpperCase()] || 'bg-gray-500';
     };
 
-    // États de chargement et d'erreur
     if (loading) {
         return (
             <div className="min-h-screen bg-black text-white font-inter flex items-center justify-center">

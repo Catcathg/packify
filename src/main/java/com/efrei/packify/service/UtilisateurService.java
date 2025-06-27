@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -103,4 +104,9 @@ public class UtilisateurService {
     public Optional<Utilisateur> findByEmail(String email) {
         return utilisateurRepository.findByEmail(email);
     }
+
+    public List<Utilisateur> findAll() {
+        return utilisateurRepository.findAll();
+    }
+
 }

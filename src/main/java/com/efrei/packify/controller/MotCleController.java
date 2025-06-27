@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/motcle")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins =  {"http://localhost:3000", "http://localhost:3001"})
 public class MotCleController {
 
     @Autowired

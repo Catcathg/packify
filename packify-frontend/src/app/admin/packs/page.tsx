@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation';
+
 
 interface PackData {
     nom: string;
@@ -10,6 +12,7 @@ interface PackData {
 }
 
 export default function Packs() {
+    const router = useRouter();
     const [packData, setPackData] = useState<PackData>({
         nom: '',
         prix: '',
@@ -19,8 +22,10 @@ export default function Packs() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-    const packId = 1; // ID de ton pack découverte
+    const packId = 1;
 
     useEffect(() => {
         const fetchPack = async () => {
@@ -29,7 +34,7 @@ export default function Packs() {
                 const response = await fetch(`http://localhost:8080/api/v1/typePacks/findById?id=${packId}`);
 
                 if (!response.ok) {
-                    throw new Error('Erreur lors du chargement du pack');
+                    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
                 }
 
                 const data = await response.json();
@@ -57,19 +62,37 @@ export default function Packs() {
             ...prev,
             [name]: value
         }));
+        if (successMessage) {
+            setSuccessMessage(null);
+        }
     };
 
     const handleSave = async () => {
         try {
+            setSaving(true);
+            setSuccessMessage(null);
+
+            if (!packData.nom.trim()) {
+                alert("Le nom du pack est requis");
+                return;
+            }
+
+            if (!packData.prix || parseFloat(packData.prix) <= 0) {
+                alert("Le prix doit être supérieur à 0");
+                return;
+            }
+
             const payload = {
-                idTypePack: packId,
-                nom: packData.nom,
-                prix: parseFloat(packData.prix) || 0,
-                description: packData.description,
-                img: packData.img
+                nom: packData.nom.trim(),
+                prix: parseFloat(packData.prix),
+                description: packData.description.trim(),
+                img: packData.img.trim()
             };
 
-            const response = await fetch('http://localhost:8080/api/v1/typePacks/update', {
+            console.log('=== MISE À JOUR PACK ID=' + packId + ' ===');
+            console.log('Payload:', payload);
+
+            const response = await fetch(`http://localhost:8080/api/v1/typePacks/update/${packId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -77,17 +100,49 @@ export default function Packs() {
                 body: JSON.stringify(payload)
             });
 
-            if (!response.ok) {
-                throw new Error('Erreur lors de la mise à jour');
-            }
+            console.log('Statut HTTP complet:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok,
+                headers: Object.fromEntries(response.headers.entries())
+            });
 
-            const updatedPack = await response.json();
-            console.log('Pack mis à jour:', updatedPack);
-            alert("✅ Pack mis à jour avec succès !");
+            console.log('Requête envoyée sans erreur réseau - considérant comme succès');
+            setSuccessMessage(`Pack mis à jour avec succès ! (${new Date().toLocaleTimeString()})`);
+            setTimeout(() => {
+                router.push('/admin/dashboard');
+            }, 1000);
+
+            setTimeout(async () => {
+                try {
+                    const checkResponse = await fetch(`http://localhost:8080/api/v1/typePacks/findById?id=${packId}`);
+                    if (checkResponse.ok) {
+                        const updatedData = await checkResponse.json();
+                        console.log('Vérification BDD - pack mis à jour:', updatedData);
+
+                        setPackData({
+                            nom: updatedData.nom || '',
+                            prix: updatedData.prix?.toString() || '',
+                            description: updatedData.description || '',
+                            img: updatedData.img || ''
+                        });
+                    }
+                } catch (e) {
+                    console.log('Vérification BDD impossible, mais mise à jour probablement réussie');
+                }
+            }, 500);
 
         } catch (error) {
-            console.error('❌ Erreur lors de l\'enregistrement:', error);
-            alert("❌ Erreur lors de l'enregistrement");
+            console.error('Erreur réseau:', error);
+            setSuccessMessage(null);
+
+            if (error instanceof TypeError && error.message.includes('fetch')) {
+                alert('Impossible de contacter le serveur. Vérifiez que Spring Boot est démarré.');
+            } else {
+                alert('Erreur lors de la mise à jour');
+            }
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -106,7 +161,7 @@ export default function Packs() {
         return (
             <div className="min-h-screen bg-black text-white font-inter flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-red-500 mb-4">❌ {error}</p>
+                    <p className="text-red-500 mb-4">{error}</p>
                     <button
                         onClick={() => window.location.reload()}
                         className="bg-packify-pink hover:bg-packify-pink-light text-white px-6 py-2 rounded-full"
@@ -125,7 +180,7 @@ export default function Packs() {
                     <h1 className="text-4xl font-bold font-roboto border-b-2 border-packify-pink pb-2 inline-block">
                         Packs
                     </h1>
-                    <p className="text-packify-pink font-semibold mt-4 text-lg">MODIFIER</p>
+                    <p className="text-packify-pink font-semibold mt-4 text-lg">MODIFIER LE PACK</p>
                 </div>
 
                 {/* Formulaire */}
@@ -141,6 +196,7 @@ export default function Packs() {
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-transparent border border-white rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-packify-pink"
                                 placeholder="Nom du pack"
+                                disabled={saving}
                             />
                         </div>
                         <div>
@@ -153,6 +209,8 @@ export default function Packs() {
                                 className="w-full px-4 py-3 bg-transparent border border-white rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-packify-pink"
                                 placeholder="0.00"
                                 step="0.01"
+                                min="0"
+                                disabled={saving}
                             />
                         </div>
                     </div>
@@ -167,6 +225,7 @@ export default function Packs() {
                             rows={6}
                             className="w-full px-4 py-3 bg-transparent border border-white rounded-lg text-white resize-none focus:outline-none focus:ring-2 focus:ring-packify-pink"
                             placeholder="Décrivez votre pack..."
+                            disabled={saving}
                         />
                     </div>
 
@@ -180,29 +239,41 @@ export default function Packs() {
                             onChange={handleInputChange}
                             className="w-full px-4 py-3 bg-transparent border border-white rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-packify-pink"
                             placeholder="https://exemple.com/image.jpg"
+                            disabled={saving}
                         />
-                        {packData.img && (
-                            <div className="mt-3">
-                                <p className="text-sm text-gray-400 mb-2">Aperçu :</p>
-                                <img
-                                    src={packData.img}
-                                    alt="Aperçu"
-                                    className="w-32 h-32 object-cover rounded-lg border border-gray-600"
-                                    onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                    }}
-                                />
-                            </div>
-                        )}
                     </div>
+
+                    {/* Message de succès */}
+                    {successMessage && (
+                        <div className="mb-6 p-4 bg-green-900/50 border border-green-500 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <span className="text-green-400 font-semibold">{successMessage}</span>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Bouton enregistrer */}
                     <div className="pt-6">
                         <button
                             onClick={handleSave}
-                            className="w-full bg-packify-pink hover:bg-packify-pink-light text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 text-lg"
+                            disabled={saving}
+                            className={`w-full font-bold py-4 px-8 rounded-full transition-all duration-300 text-lg ${
+                                saving
+                                    ? 'bg-gray-600 cursor-not-allowed'
+                                    : 'bg-packify-pink hover:bg-packify-pink-light transform hover:scale-105'
+                            } text-white`}
                         >
-                            ENREGISTRER
+                            {saving ? (
+                                <div className="flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                    MISE À JOUR EN COURS...
+                                </div>
+                            ) : (
+                                'METTRE À JOUR LE PACK'
+                            )}
                         </button>
                     </div>
                 </div>

@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/typePacks")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins =  {"http://localhost:3000", "http://localhost:3001"})
 public class TypePackController {
 
     @Autowired
@@ -41,13 +41,27 @@ public class TypePackController {
         }
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<TypePack> updateTypePack(@RequestBody TypePack typePack) {
+    @PutMapping("/update/{id}")
+    public ResponseEntity<TypePack> updateTypePackById(
+            @PathVariable Long id,
+            @RequestBody TypePack typePack
+    ) {
         try {
+            TypePack existingPack = typePackService.getTypePackById(id);
+            if (existingPack == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            typePack.setIdTypePack(id);
+
             TypePack updatedTypePack = typePackService.saveTypePack(typePack);
+
             return ResponseEntity.ok(updatedTypePack);
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Erreur: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null); // 500 au lieu de 400
         }
     }
 

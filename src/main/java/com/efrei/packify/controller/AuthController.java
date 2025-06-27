@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
 public class AuthController {
 
     @Autowired
@@ -37,7 +37,9 @@ public class AuthController {
 
             if (userOptional.isPresent() && HachageMotdePasse.checkPassword(password, userOptional.get().getMdp())) {
                 Utilisateur user = userOptional.get();
-                String token = jwtUtil.generateToken(email);
+                String roleName = user.getRole() == 0 ? "ADMIN" : "USER";
+                String token = jwtUtil.generateToken(email, roleName);
+
 
                 Map<String, Object> response = new HashMap<>();
                 response.put("token", token);
