@@ -1,4 +1,4 @@
-# Dockerfile pour Next.js (version corrigée)
+# Dockerfile pour Next.js (version finale corrigée)
 FROM node:18-alpine AS base
 
 # Install dependencies only when needed
@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY packify-frontend/package.json packify-frontend/package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -20,8 +20,13 @@ COPY packify-frontend/ .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build the application - FORCE SUCCESS
-RUN npm run build || (echo "Build failed, creating fallback..." && mkdir -p .next && echo '{"version":"fallback"}' > .next/BUILD_ID)
+# List files to debug
+RUN ls -la
+RUN ls -la src/ || echo "No src directory"
+RUN ls -la app/ || echo "No app directory"
+
+# Build the application
+RUN npm run build
 
 # Production image
 FROM base AS runner
@@ -33,11 +38,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
+# Copy all necessary files from builder
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/src ./src
 
 USER nextjs
 
@@ -46,5 +52,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Use development mode for now
-CMD ["npm", "run", "dev"]
+CMD ["npm", "start"]
