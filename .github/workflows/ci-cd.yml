@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packify-frontend  # IMPORTANT: pointer vers le bon dossier
 
     steps:
       - name: Checkout code
@@ -19,6 +22,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: './packify-frontend/package-lock.json'  # IMPORTANT: bon chemin
 
       - name: Install dependencies
         run: npm install
@@ -48,8 +52,11 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t packify-app:${{ github.sha }} .
-          docker push packify-app:${{ github.sha }}
+          cd packify-frontend
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/packify-app:${{ github.sha }} .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/packify-app:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/packify-app:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/packify-app:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/packify-app:latest
 
   deploy:
     needs: docker-build
@@ -65,4 +72,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /opt/packify
-            ansible-playbook playbook.yml
+            docker pull ${{ secrets.DOCKER_USERNAME }}/packify-app:latest
+            docker-compose down
+            docker-compose up -d
+            docker image prune -f
