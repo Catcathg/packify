@@ -32,8 +32,8 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Build application (force success)
-        run: npm run build || echo "Build completed with warnings/errors but continuing..."
+      - name: Build application
+        run: npm run build
         env:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
@@ -53,7 +53,6 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          cd packify-frontend
           docker build -t ${{ secrets.DOCKER_USERNAME }}/packify-app:${{ github.sha }} .
           docker tag ${{ secrets.DOCKER_USERNAME }}/packify-app:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/packify-app:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/packify-app:${{ github.sha }}
