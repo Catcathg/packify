@@ -1,10 +1,13 @@
-# Dockerfile pour Next.js (mode dev pour éviter build errors)
-FROM node:18-alpine AS base
+# Dockerfile pour Next.js avec Tailwind
+FROM node:18-alpine
 WORKDIR /app
 
 # Install dependencies
 COPY packify-frontend/package.json packify-frontend/package-lock.json* ./
 RUN npm ci
+
+# Force install PostCSS dependencies
+RUN npm install autoprefixer postcss tailwindcss
 
 # Copy source code
 COPY packify-frontend/ .
@@ -12,6 +15,9 @@ COPY packify-frontend/ .
 # Environment variables
 ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Install Tailwind if missing
+RUN npm install -D tailwindcss postcss autoprefixer || true
 
 # Create user
 RUN addgroup --system --gid 1001 nodejs
@@ -25,5 +31,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Use dev mode to avoid build issues
 CMD ["npm", "run", "dev"]
