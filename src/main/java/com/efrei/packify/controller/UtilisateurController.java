@@ -87,7 +87,4 @@ public class UtilisateurController {
         List<Utilisateur> users = utilisateurService.findAll();
         return ResponseEntity.ok(users);
     }
-
-
-
 }

@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name = "Activities")
+@Table(name = "activities")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -36,11 +36,11 @@ public class Activities {
     private String description;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_typePack", nullable = false)
+    @JoinColumn(name = "id_type_pack", nullable = false)
     private TypePack typePack;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_motCle", nullable = false)
+    @JoinColumn(name = "id_mot_cle", nullable = false)
     private MotCle motCle;
 
     public Long getIdActivities() {

@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # API Spring Boot
+  packify-api:
+    build: .
+    container_name: packify-api
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev-docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/packify?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/PackifyBd?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - mysql
+      - mongodb
+    networks:
+      - packify-network
+    restart: unless-stopped
+
+  # Base de données MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: packify-mysql
+    ports:
+      - "3889:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=packify
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - packify-network
+    restart: unless-stopped
+
+  # Base de données MongoDB
+  mongodb:
+    image: mongo:6.0
+    container_name: packify-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - packify-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  mongodb_data:
+
+networks:
+  packify-network:
+    driver: bridge

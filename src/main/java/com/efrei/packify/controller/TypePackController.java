@@ -61,7 +61,7 @@ public class TypePackController {
         } catch (Exception e) {
             System.err.println("Erreur: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).body(null); // 500 au lieu de 400
+            return ResponseEntity.status(500).body(null);
         }
     }
 

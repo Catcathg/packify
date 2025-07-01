@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name = "Commander")
+@Table(name = "commander")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,7 +18,7 @@ public class Commander {
     private Long idCommander;
 
     @ManyToOne
-    @JoinColumn(name = "id_typePack", nullable = false)
+    @JoinColumn(name = "id_type_pack", nullable = false)
     private TypePack typePack;
 
     @ManyToOne

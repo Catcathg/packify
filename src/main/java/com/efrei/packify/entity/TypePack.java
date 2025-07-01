@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 import java.util.List;
 
 @Entity
-@Table(name = "TypePack")
+@Table(name = "type_pack")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

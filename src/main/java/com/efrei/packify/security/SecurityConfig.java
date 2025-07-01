@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private GestionAutorisationUserService userDetailsService;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -31,14 +31,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/activities/**").permitAll()
                         .requestMatchers("/api/v1/motcle/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/commandes/getAll").permitAll()
+                        .requestMatchers("/api/v1/activities/getAll").permitAll()
                         .requestMatchers("/api/v1/utilisateurs/getAll").permitAll()
                         .requestMatchers("/api/v1/utilisateurs/findById").permitAll()
                         .requestMatchers("/api/v1/utilisateurs/update").permitAll()
                         .requestMatchers("/api/v1/utilisateurs/delete").permitAll()
                         .requestMatchers("/api/v1/utilisateurs/add").permitAll()
                         .requestMatchers("/api/v1/utilisateurs/create").permitAll()
-                        .requestMatchers("api/v1/commandes/getAll").permitAll()
-                        .requestMatchers("api/v1/activities/getAll").permitAll()
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/v1/utilisateurs/initAdmin").permitAll()
                         .anyRequest().authenticated()

@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import java.util.List;
 
 @Entity
-@Table(name = "MotCle")
+@Table(name = "mot_cle")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

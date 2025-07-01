@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/activities")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"}) // ✅ Ajout du port 3001
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
 public class ActivitiesController {
 
     @Autowired
@@ -35,27 +35,27 @@ public class ActivitiesController {
     @PostMapping("/save")
     public ResponseEntity<?> saveActivity(@RequestBody Activities activity) {
         try {
-            System.out.println("📥 Données reçues: " + activity.toString()); // ✅ Log pour debug
+            System.out.println("Données reçues: " + activity.toString());
             Activities savedActivity = activitiesService.save(activity);
-            System.out.println("✅ Activité sauvegardée: " + savedActivity.toString());
+            System.out.println("Activité sauvegardée: " + savedActivity.toString());
             return ResponseEntity.ok(savedActivity);
         } catch (Exception e) {
-            System.err.println("❌ Erreur lors de la sauvegarde: " + e.getMessage()); // ✅ Log détaillé
-            e.printStackTrace(); // ✅ Stack trace complète
+            System.err.println("Erreur lors de la sauvegarde: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Erreur lors de la création: " + e.getMessage()); // ✅ Message d'erreur détaillé
+                    .body("Erreur lors de la création: " + e.getMessage());
         }
     }
 
     @PutMapping("/update")
     public ResponseEntity<?> updateActivity(@RequestBody Activities activity) {
         try {
-            System.out.println("📝 Mise à jour de l'activité: " + activity.toString());
+            System.out.println("Mise à jour de l'activité: " + activity.toString());
             Activities updatedActivity = activitiesService.save(activity);
-            System.out.println("✅ Activité mise à jour: " + updatedActivity.toString());
+            System.out.println("Activité mise à jour: " + updatedActivity.toString());
             return ResponseEntity.ok(updatedActivity);
         } catch (Exception e) {
-            System.err.println("❌ Erreur lors de la mise à jour: " + e.getMessage());
+            System.err.println("Erreur lors de la mise à jour: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Erreur lors de la mise à jour: " + e.getMessage());
@@ -65,12 +65,12 @@ public class ActivitiesController {
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteActivity(@RequestParam Long id) {
         try {
-            System.out.println("🗑️ Suppression de l'activité ID: " + id);
+            System.out.println("Suppression de l'activité ID: " + id);
             activitiesService.deleteByIdActivities(id);
-            System.out.println("✅ Activité supprimée avec succès");
+            System.out.println("Activité supprimée avec succès");
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            System.err.println("❌ Erreur lors de la suppression: " + e.getMessage());
+            System.err.println("Erreur lors de la suppression: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Erreur lors de la suppression: " + e.getMessage());
@@ -80,7 +80,7 @@ public class ActivitiesController {
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateActivity(@PathVariable Long id, @RequestBody Activities activity) {
         try {
-            activity.setIdActivities(id); // s'assurer que l'ID est bien défini
+            activity.setIdActivities(id);
             Activities updatedActivity = activitiesService.save(activity);
             return ResponseEntity.ok(updatedActivity);
         } catch (Exception e) {

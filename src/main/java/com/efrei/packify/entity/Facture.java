@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Table(name = "Facture")
+@Table(name = "facture")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

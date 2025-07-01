@@ -266,7 +266,7 @@ export default function ActivitiesCreate() {
                     <div className="grid grid-cols-3 gap-6">
                         <div>
                             <label className="block text-white font-medium mb-3 text-lg">
-                                Nom *
+                                Nom
                             </label>
                             <input
                                 type="text"

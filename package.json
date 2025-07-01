@@ -5,6 +5,10 @@
     "stripe": "^18.2.1"
   },
   "devDependencies": {
-    "@types/stripe": "^8.0.416"
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/stripe": "^8.0.416",
+    "jest": "^30.0.3"
   }
 }
