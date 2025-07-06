@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Variables globales Packify */
 :root {
   /* Couleurs principales */
@@ -20,21 +16,6 @@
   --font-inter: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
   --font-roboto: 'Roboto', 'Arial', sans-serif;
   --font-garamond: 'EB Garamond', 'Times New Roman', serif;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, 'Consolas', 'DejaVu Sans Mono', monospace;
-
-  /* Couleurs personnalisées Packify */
-  --color-packify-black: var(--packify-black);
-  --color-packify-pink: var(--packify-pink);
-  --color-packify-pink-light: var(--packify-pink-light);
-  --color-packify-navy: var(--packify-navy);
-  --color-packify-gray: var(--packify-gray);
-  --color-packify-gray-light: var(--packify-gray-light);
 }
 
 /* Désactiver le mode sombre automatique */
@@ -67,47 +48,6 @@ body {
 
 .font-garamond {
   font-family: var(--font-garamond);
-}
-
-/* Classes utilitaires pour les couleurs Packify */
-.bg-packify-black {
-  background-color: var(--packify-black);
-}
-
-.bg-packify-pink {
-  background-color: var(--packify-pink);
-}
-
-.bg-packify-pink-light {
-  background-color: var(--packify-pink-light);
-}
-
-.bg-packify-navy {
-  background-color: var(--packify-navy);
-}
-
-.text-packify-black {
-  color: var(--packify-black);
-}
-
-.text-packify-pink {
-  color: var(--packify-pink);
-}
-
-.text-packify-pink-light {
-  color: var(--packify-pink-light);
-}
-
-.text-packify-navy {
-  color: var(--packify-navy);
-}
-
-.text-packify-gray {
-  color: var(--packify-gray);
-}
-
-.text-packify-gray-light {
-  color: var(--packify-gray-light);
 }
 
 /* Styles pour les boutons Packify */

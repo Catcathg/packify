@@ -1,6 +1,6 @@
 import type {Metadata} from "next";
 import {Roboto, Inter} from "next/font/google";
-import "./globals.css";
+// import "./globals.css";  // ← Commentez cette ligne temporairement
 import Header from '../app/components/Header';
 
 const roboto = Roboto({
@@ -26,6 +26,105 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="fr">
+        <head>
+            {/* Tailwind CSS via CDN */}
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script
+                dangerouslySetInnerHTML={{
+                    __html: `
+                        tailwind.config = {
+                            theme: {
+                                extend: {
+                                    colors: {
+                                        'packify-black': '#121214',
+                                        'packify-pink': '#FF6EC5',
+                                        'packify-pink-light': '#FB7D93',
+                                        'packify-navy': '#162233',
+                                        'packify-gray': '#374151',
+                                        'packify-gray-light': '#9CA3AF',
+                                    },
+                                    fontFamily: {
+                                        'inter': ['Inter', 'Segoe UI', 'Roboto', 'sans-serif'],
+                                        'roboto': ['Roboto', 'Arial', 'sans-serif'],
+                                        'garamond': ['EB Garamond', 'Times New Roman', 'serif'],
+                                    }
+                                }
+                            }
+                        }
+                    `,
+                }}
+            />
+            {/* Styles CSS en inline */}
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
+                        body {
+                            background: #ffffff;
+                            color: #121214;
+                            font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+                            line-height: 1.6;
+                            -webkit-font-smoothing: antialiased;
+                            -moz-osx-font-smoothing: grayscale;
+                            margin: 0;
+                            padding: 0;
+                        }
+
+                        .btn-packify {
+                            background-color: #FF6EC5;
+                            color: white;
+                            padding: 12px 24px;
+                            border-radius: 9999px;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                            border: none;
+                            cursor: pointer;
+                        }
+
+                        .btn-packify:hover {
+                            background-color: #FB7D93;
+                            transform: translateY(-2px);
+                        }
+
+                        a {
+                            color: inherit;
+                            text-decoration: none;
+                            transition: color 0.3s ease;
+                        }
+
+                        a:hover {
+                            color: #FB7D93;
+                        }
+
+                        ::selection {
+                            background-color: #FF6EC5;
+                            color: white;
+                        }
+
+                        ::-moz-selection {
+                            background-color: #FF6EC5;
+                            color: white;
+                        }
+
+                        ::-webkit-scrollbar {
+                            width: 8px;
+                        }
+
+                        ::-webkit-scrollbar-track {
+                            background: #f1f1f1;
+                        }
+
+                        ::-webkit-scrollbar-thumb {
+                            background: #FF6EC5;
+                            border-radius: 4px;
+                        }
+
+                        ::-webkit-scrollbar-thumb:hover {
+                            background: #FB7D93;
+                        }
+                    `,
+                }}
+            />
+        </head>
         <body className={`${roboto.variable} ${inter.variable}`}>
         {/* Header avec navigation */}
         <Header />
