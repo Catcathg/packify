@@ -32,7 +32,9 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("*"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false);
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001"));
+
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -46,6 +48,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/v1/drinks/**").permitAll()
                         .requestMatchers("/api/v1/typePacks/**").permitAll()
                         .requestMatchers("/api/v1/activities/**").permitAll()
                         .requestMatchers("/api/v1/motcle/**").permitAll()
@@ -58,9 +61,22 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                );
+                //.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+    /*@Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedHeader("X-XSRF-TOKEN");
+        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
+        config.setAllowedMethods(Arrays.asList("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedOrigins(Arrays.asList("http://localhost:4200","https://rdvdog.akov-developpement.fr", "https://rdv.local", "https://vetolob.fr"));
+        config.setAllowCredentials(true); // This is important since we are using session cookies
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }*/
+
 }
