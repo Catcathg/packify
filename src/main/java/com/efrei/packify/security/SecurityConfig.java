@@ -8,6 +8,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -22,25 +27,33 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Ajoutez cette ligne
                 .csrf().disable()
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v1/typePacks/**").permitAll()
                         .requestMatchers("/api/v1/activities/**").permitAll()
                         .requestMatchers("/api/v1/motcle/**").permitAll()
+                        .requestMatchers("/api/v1/commandes/**").permitAll()
+                        .requestMatchers("/api/v1/factures/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/commandes/getAll").permitAll()
-                        .requestMatchers("/api/v1/activities/getAll").permitAll()
-                        .requestMatchers("/api/v1/utilisateurs/getAll").permitAll()
-                        .requestMatchers("/api/v1/utilisateurs/findById").permitAll()
-                        .requestMatchers("/api/v1/utilisateurs/update").permitAll()
-                        .requestMatchers("/api/v1/utilisateurs/delete").permitAll()
-                        .requestMatchers("/api/v1/utilisateurs/add").permitAll()
-                        .requestMatchers("/api/v1/utilisateurs/create").permitAll()
+                        .requestMatchers("/api/v1/utilisateurs/**").permitAll()
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/v1/utilisateurs/initAdmin").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

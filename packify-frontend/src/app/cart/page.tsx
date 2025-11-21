@@ -5,21 +5,43 @@ import { useRouter } from 'next/navigation';
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
+// Interfaces TypeScript
+interface Activity {
+    id: number;
+    name: string;
+    location: string;
+    category: string;
+    categoryLabel?: string;
+    image: string;
+    description: string;
+}
+
+interface User {
+    id: number;
+    email: string;
+    nom: string;
+}
+
+interface ApiOptions extends RequestInit {
+    headers?: Record<string, string>;
+}
+
 export default function Cart() {
     const router = useRouter();
 
-    const [activities, setActivities] = useState([]);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [activities, setActivities] = useState<Activity[]>([]);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [stripeLoaded, setStripeLoaded] = useState<boolean>(false);
 
     // Vérification de l'authentification
-    const checkAuth = () => {
+    const checkAuth = (): string | null => {
         try {
             const token = localStorage.getItem('token');
             const userStr = localStorage.getItem('user');
-            const userData = userStr ? JSON.parse(userStr) : null;
+            const userData = userStr ? JSON.parse(userStr) as User : null;
 
             setIsAuthenticated(!!token);
             setUser(userData);
@@ -33,17 +55,19 @@ export default function Cart() {
     };
 
     // Fonction pour faire des appels API
-    const apiCall = async (endpoint, options = {}) => {
+    const apiCall = async (endpoint: string, options: ApiOptions = {}): Promise<any> => {
         const token = localStorage.getItem('token');
 
-        const defaultOptions = {
+        const defaultOptions: ApiOptions = {
+            mode: 'cors',
+            credentials: 'omit', // Ajouté pour Safari
             headers: {
                 'Content-Type': 'application/json',
                 ...(token && { 'Authorization': `Bearer ${token}` })
             }
         };
 
-        const finalOptions = {
+        const finalOptions: ApiOptions = {
             ...defaultOptions,
             ...options,
             headers: {
@@ -56,7 +80,17 @@ export default function Cart() {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions);
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Essayer de lire le message d'erreur du serveur
+                let errorMessage = `HTTP error! status: ${response.status}`;
+                try {
+                    const errorData = await response.text();
+                    if (errorData) {
+                        errorMessage += ` - ${errorData}`;
+                    }
+                } catch (e) {
+                    // Ignore si on ne peut pas lire la réponse
+                }
+                throw new Error(errorMessage);
             }
 
             return await response.json();
@@ -67,15 +101,15 @@ export default function Cart() {
     };
 
     // Charger les activités du panier depuis localStorage
-    const loadCartActivities = () => {
+    const loadCartActivities = (): void => {
         try {
-            // Récupérer les objets complets depuis localStorage (comme dans Activities component)
-            const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+            // Récupérer les objets complets depuis localStorage
+            const cartItems = JSON.parse(localStorage.getItem('cart') || '[]') as Activity[];
             console.log('Cart items loaded:', cartItems);
 
-            // Vérifier si ce sont des objets ou des IDs
+            // Vérifier si ce sont des objets valides
             if (cartItems.length > 0) {
-                if (typeof cartItems[0] === 'object' && cartItems[0].id) {
+                if (typeof cartItems[0] === 'object' && 'id' in cartItems[0]) {
                     // C'est déjà des objets complets
                     setActivities(cartItems);
                 } else {
@@ -94,7 +128,7 @@ export default function Cart() {
     };
 
     // Supprimer une activité du panier
-    const removeActivity = (activityId) => {
+    const removeActivity = (activityId: number): void => {
         try {
             // Supprimer de l'état local
             const updatedActivities = activities.filter(activity => activity.id !== activityId);
@@ -116,7 +150,7 @@ export default function Cart() {
     };
 
     // Vider le panier
-    const clearCart = () => {
+    const clearCart = (): void => {
         try {
             setActivities([]);
             localStorage.setItem('cart', JSON.stringify([]));
@@ -133,19 +167,73 @@ export default function Cart() {
     };
 
     // Calculer le total (le prix est fixe à 69€ pour le pack)
-    const getCartTotal = () => {
-        // Dans votre système, le prix semble être fixe pour le pack
+    const getCartTotal = (): number => {
         return activities.length > 0 ? 69 : 0;
     };
 
     // Compter les activités
-    const getCartCount = () => {
+    const getCartCount = (): number => {
         return activities.length;
     };
 
-    // Traitement du paiement - Créer une commande et une facture
-    const handlePayment = async () => {
-        if (!isAuthenticated) {
+    // Traitement du paiement - Version Stripe directe
+    const handlePaymentStripe = async (): Promise<void> => {
+        if (!isAuthenticated || !user) {
+            router.push('/auth/login');
+            return;
+        }
+
+        if (!stripeLoaded) {
+            setError('Stripe n\'est pas encore chargé. Veuillez réessayer dans quelques secondes.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+
+            const activitiesInCart = [...activities];
+
+            // Appel direct à Stripe
+            const response = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    activities: activitiesInCart
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors de la création de la session de paiement');
+            }
+
+            const { sessionId } = await response.json();
+
+            // Vérifier que Stripe est disponible
+            if (typeof (window as any).Stripe !== 'function') {
+                throw new Error('Stripe n\'est pas chargé correctement');
+            }
+
+            // Redirection vers Stripe Checkout
+            const stripe = (window as any).Stripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+            const { error } = await stripe.redirectToCheckout({ sessionId });
+
+            if (error) {
+                console.error('Erreur Stripe:', error);
+                setError('Erreur lors de la redirection vers le paiement');
+            }
+
+        } catch (error) {
+            console.error('Erreur lors du paiement:', error);
+            setError('Erreur lors de la création du paiement. Veuillez réessayer.');
+        } finally {
+            setLoading(false);
+        }
+    };
+    const handlePayment = async (): Promise<void> => {
+        if (!isAuthenticated || !user) {
             router.push('/auth/login');
             return;
         }
@@ -157,14 +245,37 @@ export default function Cart() {
             const total = getCartTotal();
             const activitiesInCart = [...activities];
 
-            // 1. Créer une commande
+            console.log('Utilisateur:', user);
+            console.log('Activités dans le panier:', activitiesInCart);
+
+            // 1. Données adaptées à l'entité Commander
             const commandeData = {
+                // Adaptez ces champs selon votre entité Commander
                 dateCommande: new Date().toISOString().split('T')[0],
                 statut: 'EN_ATTENTE',
                 montantTotal: total,
-                userId: user.id,
-                activitiesIds: activitiesInCart.map(activity => activity.id)
+                // Ces champs dépendent de votre entité Commander
+                utilisateurId: user.id,  // ou utilisateur: { id: user.id }
+                activitiesIds: activitiesInCart.map(activity => activity.id)  // ou activities: [...]
             };
+
+            console.log('Données à envoyer pour la commande:', JSON.stringify(commandeData, null, 2));
+
+            // Test d'abord l'endpoint de test
+            console.log('Test de l\'endpoint...');
+            try {
+                const testResult = await apiCall('/commandes/test', {
+                    method: 'POST',
+                    body: JSON.stringify({ test: 'data' })
+                });
+                console.log('Test endpoint réussi:', testResult);
+            } catch (testError) {
+                console.error('Erreur test endpoint:', testError);
+                setError('Erreur: Endpoint commandes non accessible');
+                return;
+            }
+
+            console.log('Création de la commande...');
 
             console.log('Création de la commande:', commandeData);
             const commande = await apiCall('/commandes/save', {
@@ -178,12 +289,12 @@ export default function Cart() {
             const factureData = {
                 numeroFacture: `FACT-${Date.now()}`,
                 dateFacture: new Date().toISOString().split('T')[0],
-                montantHT: (total / 1.2).toFixed(2),
+                montantHT: parseFloat((total / 1.2).toFixed(2)),
                 montantTTC: total,
-                taux_tva: 20,
+                tauxTva: 20, // ou taux_tva selon votre entité
                 statut: 'EN_ATTENTE_PAIEMENT',
-                commandeId: commande.id,
-                userId: user.id
+                commande: { id: commande.id }, // ou commandeId selon votre backend
+                utilisateur: { id: user.id } // ou userId selon votre backend
             };
 
             console.log('Création de la facture:', factureData);
@@ -208,16 +319,32 @@ export default function Cart() {
         }
     };
 
-    const handleClose = () => {
+    const handleClose = (): void => {
         router.back();
     };
 
-    // useEffect pour charger les données
+    // useEffect pour charger les données et Stripe
     useEffect(() => {
         checkAuth();
         loadCartActivities();
 
-        const handleStorageChange = (e) => {
+        // Charger Stripe
+        const loadStripe = () => {
+            if (!(window as any).Stripe) {
+                const script = document.createElement('script');
+                script.src = 'https://js.stripe.com/v3/';
+                script.onload = () => {
+                    setStripeLoaded(true);
+                };
+                document.head.appendChild(script);
+            } else {
+                setStripeLoaded(true);
+            }
+        };
+
+        loadStripe();
+
+        const handleStorageChange = (e: StorageEvent): void => {
             if (e.key === 'cart') {
                 loadCartActivities();
             }
@@ -293,7 +420,7 @@ export default function Cart() {
 
                         {/* Selected Activities */}
                         <div className="space-y-4 mb-8">
-                            {activities.map((activity, index) => (
+                            {activities.map((activity) => (
                                 <div key={activity.id} className="bg-packify-pink rounded-2xl p-6 relative">
                                     {/* Bouton de suppression - Croix */}
                                     <button
@@ -318,7 +445,7 @@ export default function Cart() {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                                       d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                      d="M15 11a3 3 0 11-6 0 3 3 0 616 0z"/>
+                                                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                             </svg>
                                             <span className="font-medium">{activity.location}</span>
                                         </div>
@@ -366,7 +493,7 @@ export default function Cart() {
                                     </div>
 
                                     <button
-                                        onClick={handlePayment}
+                                        onClick={handlePaymentStripe}
                                         disabled={loading}
                                         className="w-full bg-packify-pink hover:bg-packify-pink-light text-white font-bold py-4 px-8 rounded-2xl text-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
@@ -375,6 +502,8 @@ export default function Cart() {
                                                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                                                 TRAITEMENT...
                                             </div>
+                                        ) : !stripeLoaded ? (
+                                            'CHARGEMENT STRIPE...'
                                         ) : (
                                             isAuthenticated ? 'PAYER MAINTENANT' : 'SE CONNECTER POUR PAYER'
                                         )}

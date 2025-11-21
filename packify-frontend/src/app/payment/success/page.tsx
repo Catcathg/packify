@@ -9,43 +9,55 @@ export default function PaymentSuccess() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get('session_id');
 
+    const [loading, setLoading] = useState(true);
     const [clearingCart, setClearingCart] = useState(false);
     const [cartCleared, setCartCleared] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Vider le panier après un paiement réussi
     useEffect(() => {
-        const clearCart = async () => {
+        const clearCart = async (): Promise<void> => {
             if (sessionId && !cartCleared) {
                 try {
                     setClearingCart(true);
 
-                    // Appel API pour vider le panier
-                    const response = await fetch('/api/cart', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    });
+                    // Vider le localStorage directement
+                    localStorage.removeItem('cart');
 
-                    if (response.ok) {
-                        setCartCleared(true);
-                        console.log('Panier vidé avec succès après paiement');
-                    } else {
-                        throw new Error('Erreur lors du vidage du panier');
-                    }
+                    // Déclencher un événement pour synchroniser avec d'autres onglets
+                    window.dispatchEvent(new StorageEvent('storage', {
+                        key: 'cart',
+                        newValue: null
+                    }));
+
+                    setCartCleared(true);
+                    console.log('Panier vidé avec succès après paiement');
+
                 } catch (err) {
                     console.error('Erreur lors du vidage du panier:', err);
                     setError('Erreur lors du vidage du panier');
-                    // Ne pas bloquer l'affichage de la page de succès pour cette erreur
                 } finally {
                     setClearingCart(false);
+                    setLoading(false);
                 }
+            } else {
+                setLoading(false);
             }
         };
 
         clearCart();
     }, [sessionId, cartCleared]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black text-white font-inter flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-packify-pink mx-auto mb-4"></div>
+                    <p>Finalisation de votre commande...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-black text-white font-inter">
@@ -91,7 +103,7 @@ export default function PaymentSuccess() {
                                         ? "Vidage du panier en cours..."
                                         : cartCleared
                                             ? "Votre panier a été automatiquement vidé"
-                                            : "Votre panier va être automatiquement vidé"
+                                            : "Votre panier sera automatiquement vidé"
                                     }
                                 </p>
                             </div>
