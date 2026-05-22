@@ -1,0 +1,10 @@
+# Fichier contenant les secrets
+secrets.yml
+
+# Fichiers de backup
+*.bak
+*.backup
+
+# Fichiers temporaires Ansible
+*.retry
+.ansible/

@@ -1,0 +1,246 @@
+---
+# ==========================================
+# PACKIFY - Monitoring avec Grafana
+# ==========================================
+# Usage: ansible-playbook -i "VOTRE_IP," monitoring.yml --ask-become-pass
+
+- name: Installer Stack Monitoring (Prometheus + Grafana)
+  hosts: all
+  become: yes
+  vars:
+    monitoring_path: "/opt/packify/monitoring"
+
+  tasks:
+    - name: "📁 Création structure monitoring"
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ monitoring_path }}"
+        - "{{ monitoring_path }}/grafana-provisioning"
+        - "{{ monitoring_path }}/grafana-provisioning/datasources"
+        - "{{ monitoring_path }}/grafana-provisioning/dashboards"
+
+    # ==========================================
+    # PROMETHEUS
+    # ==========================================
+    - name: "⚙️ Configuration Prometheus"
+      copy:
+        content: |
+          global:
+            scrape_interval: 15s
+            evaluation_interval: 15s
+          
+          scrape_configs:
+            # Prometheus lui-même
+            - job_name: 'prometheus'
+              static_configs:
+                - targets: ['localhost:9090']
+          
+            # Métriques système (CPU, RAM, Disk)
+            - job_name: 'node-exporter'
+              static_configs:
+                - targets: ['node-exporter:9100']
+          
+            # Métriques containers Docker
+            - job_name: 'cadvisor'
+              static_configs:
+                - targets: ['cadvisor:8080']
+          
+            # API Spring Boot
+            - job_name: 'packify-api'
+              metrics_path: '/actuator/prometheus'
+              static_configs:
+                - targets: ['packify-api:8080']
+        dest: "{{ monitoring_path }}/prometheus.yml"
+
+    # ==========================================
+    # GRAFANA - DATASOURCE AUTO
+    # ==========================================
+    - name: "⚙️ Datasource Prometheus (auto-config)"
+      copy:
+        content: |
+          apiVersion: 1
+          
+          datasources:
+            - name: Prometheus
+              type: prometheus
+              access: proxy
+              url: http://prometheus:9090
+              isDefault: true
+              editable: false
+              jsonData:
+                timeInterval: "15s"
+        dest: "{{ monitoring_path }}/grafana-provisioning/datasources/prometheus.yml"
+
+    # ==========================================
+    # GRAFANA - DASHBOARD AUTO
+    # ==========================================
+    - name: "⚙️ Provisioning dashboards (auto-import)"
+      copy:
+        content: |
+          apiVersion: 1
+          
+          providers:
+            - name: 'Packify'
+              orgId: 1
+              folder: ''
+              type: file
+              disableDeletion: false
+              updateIntervalSeconds: 10
+              allowUiUpdates: true
+              options:
+                path: /etc/grafana/provisioning/dashboards
+        dest: "{{ monitoring_path }}/grafana-provisioning/dashboards/dashboards.yml"
+
+    - name: "📊 Copie dashboard Packify"
+      copy:
+        src: grafana-dashboard.json
+        dest: "{{ monitoring_path }}/grafana-provisioning/dashboards/packify.json"
+
+    # ==========================================
+    # DOCKER COMPOSE MONITORING
+    # ==========================================
+    - name: "⚙️ Docker Compose monitoring"
+      copy:
+        content: |
+          version: '3.8'
+          
+          services:
+            # Prometheus - Collecte métriques
+            prometheus:
+              image: prom/prometheus:latest
+              container_name: prometheus
+              ports:
+                - "9090:9090"
+              volumes:
+                - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+                - prometheus_data:/prometheus
+              command:
+                - '--config.file=/etc/prometheus/prometheus.yml'
+                - '--storage.tsdb.retention.time=30d'
+              restart: unless-stopped
+              networks:
+                - packify-network
+          
+            # Grafana - Dashboards
+            grafana:
+              image: grafana/grafana:latest
+              container_name: grafana
+              ports:
+                - "3001:3000"
+              environment:
+                - GF_SECURITY_ADMIN_USER=admin
+                - GF_SECURITY_ADMIN_PASSWORD=admin
+                - GF_USERS_ALLOW_SIGN_UP=false
+                - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/packify.json
+              volumes:
+                - grafana_data:/var/lib/grafana
+                - ./grafana-provisioning:/etc/grafana/provisioning:ro
+              restart: unless-stopped
+              networks:
+                - packify-network
+              depends_on:
+                - prometheus
+          
+            # Node Exporter - Métriques système
+            node-exporter:
+              image: prom/node-exporter:latest
+              container_name: node-exporter
+              command:
+                - '--path.procfs=/host/proc'
+                - '--path.sysfs=/host/sys'
+                - '--path.rootfs=/rootfs'
+              volumes:
+                - /proc:/host/proc:ro
+                - /sys:/host/sys:ro
+                - /:/rootfs:ro
+              ports:
+                - "9100:9100"
+              restart: unless-stopped
+              networks:
+                - packify-network
+          
+            # cAdvisor - Métriques containers
+            cadvisor:
+              image: gcr.io/cadvisor/cadvisor:latest
+              container_name: cadvisor
+              privileged: true
+              ports:
+                - "8080:8080"
+              volumes:
+                - /:/rootfs:ro
+                - /var/run:/var/run:ro
+                - /sys:/sys:ro
+                - /var/lib/docker/:/var/lib/docker:ro
+              restart: unless-stopped
+              networks:
+                - packify-network
+          
+          volumes:
+            prometheus_data:
+            grafana_data:
+          
+          networks:
+            packify-network:
+              external: true
+        dest: "{{ monitoring_path }}/docker-compose.yml"
+
+    # ==========================================
+    # DÉMARRAGE
+    # ==========================================
+    - name: "🚀 Démarrage stack monitoring"
+      community.docker.docker_compose:
+        project_src: "{{ monitoring_path }}"
+        state: present
+        pull: yes
+
+    - name: "⏳ Attente Prometheus"
+      uri:
+        url: "http://localhost:9090/-/ready"
+        status_code: 200
+      retries: 20
+      delay: 3
+      ignore_errors: yes
+
+    - name: "⏳ Attente Grafana"
+      uri:
+        url: "http://localhost:3001/api/health"
+        status_code: 200
+      retries: 30
+      delay: 3
+      ignore_errors: yes
+
+    # ==========================================
+    # RÉSUMÉ
+    # ==========================================
+    - name: "✅ MONITORING INSTALLÉ"
+      debug:
+        msg: |
+          
+          ╔══════════════════════════════════════════════╗
+          ║     📊 MONITORING INSTALLÉ AVEC SUCCÈS !     ║
+          ╚══════════════════════════════════════════════╝
+          
+          🌐 Accès Grafana:
+            URL:      http://{{ ansible_host }}:3001
+            Login:    admin
+            Password: admin
+          
+          📊 Le dashboard "Packify" est déjà configuré !
+            → Automatiquement chargé au démarrage
+          
+          📈 Autres URLs:
+            • Prometheus:  http://{{ ansible_host }}:9090
+            • cAdvisor:    http://{{ ansible_host }}:8080
+          
+          📊 Métriques disponibles:
+            ✅ CPU, RAM, Disk (système)
+            ✅ Containers Docker
+            ✅ API Spring Boot
+            ✅ MySQL / MongoDB (si exporters ajoutés)
+          
+          🔒 IMPORTANT:
+            ⚠️  Changez le mot de passe Grafana !
+               (Settings → Change Password)

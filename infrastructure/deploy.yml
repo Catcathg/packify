@@ -1,0 +1,116 @@
+---
+# ==========================================
+# PACKIFY - Deploiement Application
+# ==========================================
+# Usage: ansible-playbook -i "VOTRE_IP," deploy.yml -e @secrets.yml --ask-become-pass
+# Exemple: ansible-playbook -i "51.20.30.40," deploy.yml -e @secrets.yml --ask-become-pass
+
+- name: Deployer Packify en Production
+  hosts: all
+  become: yes
+  vars:
+    # Configuration du projet
+    git_repo: "{{ vault_git_repo }}"
+    git_branch: "{{ vault_git_branch }}"
+    deploy_path: "/opt/packify"
+
+    # Ports
+    api_port: 8081
+    frontend_port: 3000
+
+  tasks:
+    - name: "Installation des packages"
+      apt:
+        name: [git, docker.io, docker-compose, ufw, python3-pip]
+        update_cache: yes
+        state: present
+
+    - name: "Installation Docker Python SDK"
+      pip:
+        name: [docker, docker-compose]
+
+    - name: "Demarrage service Docker"
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: "Configuration firewall - Autoriser les ports"
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+      loop: ["22", "80", "443", "{{ api_port }}", "{{ frontend_port }}", "3001"]
+
+    - name: "Activation du firewall"
+      ufw:
+        state: enabled
+        policy: deny
+
+    - name: "Creation des repertoires"
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ deploy_path }}/app"
+        - "{{ deploy_path }}/mysql_data"
+        - "{{ deploy_path }}/mongodb_data"
+
+    - name: "Clone du code Packify"
+      git:
+        repo: "{{ git_repo }}"
+        dest: "{{ deploy_path }}/app"
+        version: "{{ git_branch }}"
+        force: yes
+
+    - name: "Configuration du fichier .env"
+      copy:
+        content: |
+          MYSQL_ROOT_PASSWORD={{ vault_mysql_root_password }}
+          MYSQL_DATABASE=packify
+          MYSQL_USER={{ vault_mysql_user }}
+          MYSQL_PASSWORD={{ vault_mysql_password }}
+          MONGO_USER={{ vault_mongo_user }}
+          MONGO_PASSWORD={{ vault_mongo_password }}
+          MONGODB_URI={{ vault_mongodb_uri }}
+          JWT_SECRET={{ vault_jwt_secret }}
+          DOCKER_USERNAME={{ vault_docker_username }}
+          SPRING_PROFILES_ACTIVE=production-docker
+          NODE_ENV=production
+        dest: "{{ deploy_path }}/app/.env"
+        mode: '0600'
+
+    - name: "Creation du reseau Docker"
+      community.docker.docker_network:
+        name: packify-network
+        state: present
+
+    - name: "Demarrage des services"
+      community.docker.docker_compose:
+        project_src: "{{ deploy_path }}/app"
+        state: present
+        pull: yes
+        recreate: always
+
+    - name: "Attente demarrage API (max 2min)"
+      uri:
+        url: "http://localhost:{{ api_port }}/actuator/health"
+        status_code: 200
+      retries: 24
+      delay: 5
+      ignore_errors: yes
+
+    - name: "Resultat du deploiement"
+      debug:
+        msg: |
+          
+          ================================================
+          PACKIFY DEPLOYE AVEC SUCCES
+          ================================================
+          
+          URLs:
+            Frontend:   http://{{ ansible_host }}:{{ frontend_port }}
+            API:        http://{{ ansible_host }}:{{ api_port }}
+            Health:     http://{{ ansible_host }}:{{ api_port }}/actuator/health
+          
+          Prochaine etape - Installer le monitoring:
+            ansible-playbook -i "{{ ansible_host }}," monitoring.yml -e @secrets.yml --ask-become-pass

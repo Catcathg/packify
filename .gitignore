@@ -102,4 +102,4 @@ static/uploads/
 ### Logs ###
 logs/
 *.log
-spring.log
+spring.loginfrastructure/secrets.yml
